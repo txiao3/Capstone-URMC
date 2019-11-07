@@ -1,0 +1,27 @@
+# Misc
+#matplotlib
+numpy==1.14.5
+statsmodels==0.8.0
+scipy
+pandas==0.20.3
+sklearn
+networkx==1.11
+
+# Vizualization
+bokeh==0.12.1
+ggplot
+seaborn
+
+# Analysis lib
+git+git://github.com/HumanDynamics/openbadge-analysis.git
+
+# If you are still editing the library, you can point pip to your local copy, for example:
+# pip install -e /home/orenled/Dropbox/code/openbadge-analysis --upgrade
+
+# Jupyter
+jupyter
+
+# Optional:
+#jupyter_contrib_nbextensions
+ # then, run jupyter contrib nbextension install --user
+
