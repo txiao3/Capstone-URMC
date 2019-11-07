@@ -1,0 +1,11 @@
+cython
+numpy
+scipy
+matplotlib
+pandas===0.20.3
+seaborn
+bokeh==0.12.1
+ggplot
+networkx
+crc16
+sklearn
