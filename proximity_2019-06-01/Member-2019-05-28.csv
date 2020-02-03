@@ -1,4 +1,4 @@
-member,date_created,date_updated,id,email,name,badge,observed_id,active,comments,last_audio_ts,last_audio_ts_fract,last_proximity_ts,last_contacted_ts,last_voltage,last_seen_ts,last_unsync_ts,project,region
+member,date_created,date_updated,id,email,name,BADGE IP,observed_id,active,comments,last_audio_ts,last_audio_ts_fract,last_proximity_ts,last_contacted_ts,last_voltage,last_seen_ts,last_unsync_ts,project,region
 W7SXW19MPM,2019/5/28 12:56,2019/5/28 12:56,115,,Badge412,F7:CA:E5:74:BD:06,0,1,,1559048174,0,1559048174,0,0,0,0,1,Team1
 EJCJZNKPMG,2019/5/28 12:56,2019/5/28 12:56,114,,Badge411,E3:5F:B7:80:8C:1E,0,1,,1559048174,0,1559048174,0,0,0,0,1,Team1
 VVVQLVOOD1,2019/5/28 12:56,2019/5/28 12:56,113,,Badge410,E4:1D:B0:47:33:71,0,1,,1559048174,0,1559048174,0,0,0,0,1,Team1
