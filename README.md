@@ -1,6 +1,6 @@
-# Capstone-URMC
+# URMC Badge Analysis
 
-This repository contains data explorating and preprocessing of a capstone project for University of Rochester.
+This repository contains implementations of URMC Badge Analysis project.
 
 ## Authors
 * Yumeng Xi
