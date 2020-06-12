@@ -511,13 +511,3 @@ def InteractionNetworkGraph(time_interval_start_h, time_interval_start_m,
 
 
 
-def main():
-    NetworkGraphBasicExample('2019-06-01 10:00','2019-06-01 11:20')
-    LunchTimeAnalysis()
-    BreakoutSessionAnalysis()
-    InteractionNetworkGraph(time_interval_start_h=9,time_interval_start_m=50,
-                            time_interval_end_h=11,time_interval_end_m=20,
-                            interval=2,t_count_threshold = 2)
-    
-if __name__=="__main__":
-    main()

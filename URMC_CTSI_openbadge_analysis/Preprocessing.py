@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Jun 11 21:16:22 2020
 
-@author: Yumen
-"""
 
 #For Hublog, import the following packages
 from __future__ import absolute_import, division, print_function
@@ -773,3 +768,61 @@ def _hublog_read_clock_sync_line(line):
     d['mac'] = data[1]
     d['badge_timestamp'] = data[2].replace(",", ".")
     return d
+
+
+
+#from .raw import split_raw_data_by_day
+def split_raw_data_by_day(fileobject, target, kind, log_version=None):
+    """Splits the data from a raw data file into a single file for each day.
+
+    Parameters
+    ----------
+    fileobject : object, supporting tell, readline, seek, and iteration.
+        The raw data to be split, for instance, a file object open in read mode.
+
+    target : str
+        The directory into which the files will be written.  This directory must
+        already exist.
+
+    kind : str
+        The kind of data being extracted, either 'audio' or 'proximity'.
+
+    log_version : str
+        The log version, in case no metadata is present.
+    """
+    # The days fileobjects
+    
+    # It's a mapping from iso dates (e.g. '2017-07-29') to fileobjects
+    days = {}
+    
+    # Extract log version from metadata, if present
+    log_version = extract_log_version(fileobject) or log_version
+
+    if log_version not in ('1.0', '2.0'):
+        raise Exception('file log version was not set and cannot be identified')
+
+    if log_version in ('1.0'):
+        raise Exception('file version '+str(log_version)+'is no longer supported')
+
+    # Read each line
+    for line in fileobject:
+        data = json.loads(line)
+
+        # Keep only relevant data
+        if not data['type'] == kind + ' received':
+            continue
+
+        # Extract the day from the timestamp
+        day = datetime.date.fromtimestamp(data['data']['timestamp']).isoformat()
+
+        # If no fileobject exists for that day, create one
+        if day not in days:
+            days[day] = open(os.path.join(target, day), 'a')
+
+        # Write the data to the corresponding day file
+        json.dump(data, days[day])
+        days[day].write('\n')
+    
+    # Free the memory
+    for f in days.values():
+        f.close()

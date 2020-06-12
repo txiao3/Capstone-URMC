@@ -8,8 +8,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import networkx as nx
 import Preprocessing
-from collections import Counter
-# Import the data analysis tools
+import heatmap_functions
+
+#Import the data analysis tools
 #import openbadge_analysis as ob
 #import openbadge_analysis.preprocessing
 #import openbadge_analysis.core
@@ -130,7 +131,6 @@ tmp_m2ms = tmp_m2ms.drop(drop_index)
 tmp_m2ms = tmp_m2ms.set_index(['datetime'])
 
 
-import heatmap_functions
 
 time_slice = slice('2019-06-01 10:00', '2019-06-01 10:00')
 breakout1 = slice('2019-06-01 09:50', '2019-06-01 10:39')
