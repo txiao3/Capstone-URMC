@@ -1,5 +1,3 @@
-
-
 #For Hublog, import the following packages
 from __future__ import absolute_import, division, print_function
 import pandas as pd
@@ -10,20 +8,18 @@ import crc16
 
 #for raw, import the following packages
 import json
-# import os
-# import datetime
+import os
+import datetime
 
 #for metadata, import the following packages
-# import pandas as pd
-# import json
+import pandas as pd
+import json
 import io
 
 #for proximity, import the following packages
-# import pandas as pd
-# import json
+import pandas as pd
+import json
 import collections
-
-
 
 
 #from core import mac_address_to_id
@@ -37,6 +33,98 @@ def mac_address_to_id(mac):
 
 
 
+#from .raw import split_raw_data_by_day
+def split_raw_data_by_day(fileobject, target, kind, log_version=None):
+    """Splits the data from a raw data file into a single file for each day.
+
+    Parameters
+    ----------
+    fileobject : object, supporting tell, readline, seek, and iteration.
+        The raw data to be split, for instance, a file object open in read mode.
+
+    target : str
+        The directory into which the files will be written.  This directory must
+        already exist.
+
+    kind : str
+        The kind of data being extracted, either 'audio' or 'proximity'.
+
+    log_version : str
+        The log version, in case no metadata is present.
+    """
+    # The days fileobjects
+    
+    # It's a mapping from iso dates (e.g. '2017-07-29') to fileobjects
+    days = {}
+    
+    # Extract log version from metadata, if present
+    log_version = extract_log_version(fileobject) or log_version
+
+    if log_version not in ('1.0', '2.0'):
+        raise Exception('file log version was not set and cannot be identified')
+
+    if log_version in ('1.0'):
+        raise Exception('file version '+str(log_version)+'is no longer supported')
+
+    # Read each line
+    for line in fileobject:
+        data = json.loads(line)
+
+        # Keep only relevant data
+        if not data['type'] == kind + ' received':
+            continue
+
+        # Extract the day from the timestamp
+        day = datetime.date.fromtimestamp(data['data']['timestamp']).isoformat()
+
+        # If no fileobject exists for that day, create one
+        if day not in days:
+            days[day] = open(os.path.join(target, day), 'a')
+
+        # Write the data to the corresponding day file
+        json.dump(data, days[day])
+        days[day].write('\n')
+    
+    # Free the memory
+    for f in days.values():
+        f.close()
+
+
+
+#from .metadata import id_to_member_mapping
+def id_to_member_mapping(mapper, time_bins_size='1min', tz='US/Eastern', fill_gaps=True):
+    """Creates a pd.Series mapping member numeric IDs to the string
+    member key associated with them. 
+
+    If the 'mapper' provided is a DataFrame, assumes it's metadata and that ID's 
+        do not change mapping throughout the project, and proceeds to create a
+        Series with only a member index.
+    If the 'mapper' provided is a file object, assumes the old version of id_map
+        and creates a Series with a datetime and member index.
+
+    Parameters
+    ----------
+    fileobject : file object
+        A file to read to determine the mapping.
+    
+    members_metadata : pd.DataFrame
+        Metadata dataframe, as downloaded from the server, to map IDs to keys.
+        
+    Returns
+    -------
+    pd.Series : 
+        The ID to member key mapping.
+    
+    """
+    if isinstance(mapper, io.BufferedIOBase) | isinstance(mapper, io.IOBase):
+        idmap = legacy_id_to_member_mapping(mapper, time_bins_size=time_bins_size, tz=tz, fill_gaps=fill_gaps)
+        print(type(mapper))
+        return idmap
+    elif isinstance(mapper, pd.DataFrame):
+        idmap = {row.member_id: row.member for row in mapper.itertuples()}
+        return pd.DataFrame.from_dict(idmap, orient='index')[0].rename('member')
+    else:
+        raise ValueError("You must provide either a fileobject or metadata dataframe as the mapper.")
 
 
 # from .metadata import legacy_id_to_member_mapping
@@ -166,44 +254,6 @@ def voltages(fileobject, time_bins_size='1min', tz='US/Eastern', skip_errors=Fal
     return df['voltage']
 
 
-
-
-#from .metadata import id_to_member_mapping
-def id_to_member_mapping(mapper, time_bins_size='1min', tz='US/Eastern', fill_gaps=True):
-    """Creates a pd.Series mapping member numeric IDs to the string
-    member key associated with them. 
-
-    If the 'mapper' provided is a DataFrame, assumes it's metadata and that ID's 
-        do not change mapping throughout the project, and proceeds to create a
-        Series with only a member index.
-    If the 'mapper' provided is a file object, assumes the old version of id_map
-        and creates a Series with a datetime and member index.
-
-    Parameters
-    ----------
-    fileobject : file object
-        A file to read to determine the mapping.
-    
-    members_metadata : pd.DataFrame
-        Metadata dataframe, as downloaded from the server, to map IDs to keys.
-        
-    Returns
-    -------
-    pd.Series : 
-        The ID to member key mapping.
-    
-    """
-    if isinstance(mapper, io.BufferedIOBase) | isinstance(mapper, io.IOBase):
-        idmap = legacy_id_to_member_mapping(mapper, time_bins_size=time_bins_size, tz=tz, fill_gaps=fill_gaps)
-        # print(type(mapper))
-        return idmap
-    elif isinstance(mapper, pd.DataFrame):
-        idmap = {row.member_id: row.member for row in mapper.itertuples()}
-        return pd.DataFrame.from_dict(idmap, orient='index')[0].rename('member')
-    else:
-        raise ValueError("You must provide either a fileobject or metadata dataframe as the mapper.")
-
-
 # from .metadata import sample_counts
 def sample_counts(fileobject, tz='US/Eastern', keep_type=False, skip_errors=False):
     """Creates a DataFrame of sample counts, for each member and raw record
@@ -295,7 +345,6 @@ def _id_to_member_mapping_fill_gaps(idmap, time_bins_size='1min'):
     return s
 
 
-
 # from .proximity import member_to_badge_proximity
 def member_to_badge_proximity(fileobject, time_bins_size='1min', tz='US/Eastern'):
     """Creates a member-to-badge proximity DataFrame from a proximity data file.
@@ -352,8 +401,6 @@ def member_to_badge_proximity(fileobject, time_bins_size='1min', tz='US/Eastern'
     df.sort_index(inplace=True)
 
     return df
-
-
 
 # from .proximity import member_to_member_proximity
 def member_to_member_proximity(m2badge, id2m):
@@ -427,9 +474,6 @@ def member_to_member_proximity(m2badge, id2m):
     print(df)
     return df[['rssi', 'rssi_max', 'rssi_weighted_mean', 'count_sum']]
 
-
-
-
 # from .proximity import member_to_beacon_proximity
 def member_to_beacon_proximity(m2badge, id2b):
     """Creates a member-to-beacon proximity DataFrame from member-to-badge proximity data.
@@ -469,8 +513,6 @@ def member_to_beacon_proximity(m2badge, id2b):
     df = df[~df.index.duplicated(keep='first')]
 
     return df[['rssi']]
-
-
 
 # from .proximity import member_to_beacon_proximity_smooth
 def member_to_beacon_proximity_smooth(m2b, window_size = '5min',
@@ -518,9 +560,6 @@ def member_to_beacon_proximity_smooth(m2b, window_size = '5min',
         .dropna().sort_index()
     return df2
 
-
-
-
 # from .proximity import member_to_beacon_proximity_fill_gaps
 def member_to_beacon_proximity_fill_gaps(m2b, time_bins_size='1min',
                                         max_gap_size = 2):
@@ -553,45 +592,6 @@ def member_to_beacon_proximity_fill_gaps(m2b, time_bins_size='1min',
     df = df.reorder_levels(['datetime', 'member', 'beacon'], axis=0)\
         .dropna().sort_index()
     return df
-
-# from .hublog import _is_legal_log_line
-def _is_legal_log_line(line):
-    log_pattern = re.compile("^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d+ - \w+ - .*$")
-    return log_pattern.match(line) is not None
-
-
-# from .hublog import _hublog_read_reset_line
-def _hublog_read_reset_line(line):
-    """ Parses a single reset line from a hub log
-
-    Parameters
-    ----------
-    line : str
-        A single line of log file
-
-    Returns
-    -------
-    dictionary:
-        Parses a sync event - when badge was previously not synced and was sent a new date
-
-    """
-    # remove end of line
-    line = line.rstrip("\n\r")
-
-    # Filter out rows with illegal structure
-    if not _is_legal_log_line(line):
-        return None
-
-    # Parse data
-    data = line.split(" - ")[2]
-
-    if not data.endswith("Badge previously unsynced."):
-        return None
-
-    sync_data = {}
-    sync_data['datetime'] = line.split(" - ")[0]
-    sync_data['mac'] = data[1:18]
-    return sync_data
 
 # from .hublog import hublog_scans
 def hublog_scans(fileobject, log_tz, tz='US/Eastern'):
@@ -646,7 +646,6 @@ def hublog_scans(fileobject, log_tz, tz='US/Eastern'):
     return df
 
 
-
 # from .hublog import hublog_resets
 def hublog_resets(fileobject, log_tz, tz='US/Eastern'):
     """Creates a DataFrame of reset events - when badge were previously not synced and
@@ -688,6 +687,7 @@ def hublog_resets(fileobject, log_tz, tz='US/Eastern'):
     df = df.set_index('datetime')
     df.sort_index(inplace=True)
     return df
+
 
 # from .hublog import hublog_clock_syncs
 def hublog_clock_syncs(fileobject, log_tz, tz='US/Eastern'):
@@ -738,91 +738,4 @@ def hublog_clock_syncs(fileobject, log_tz, tz='US/Eastern'):
     df.sort_index(inplace=True)
     return df
 
-
-def _hublog_read_clock_sync_line(line):
-    """ Parses a single clock line from a hub log
-
-    Parameters
-    ----------
-    line : str
-        A single line of log file
-
-    Returns
-    -------
-    dictionary:
-        Parses a sync event
-
-    """
-    # remove end of line
-    line = line.rstrip("\n\r")
-
-    # look for clock syncs
-    if "Badge datetime was" not in line:
-        return None
-
-    # Parse data
-    data = re.match('(.*) - INFO - \[(.*)\] Badge datetime was: ([\d,]*)', line).group(1, 2, 3)
-
-    d = {}
-    d['datetime'] = data[0]
-    d['mac'] = data[1]
-    d['badge_timestamp'] = data[2].replace(",", ".")
-    return d
-
-
-
-#from .raw import split_raw_data_by_day
-def split_raw_data_by_day(fileobject, target, kind, log_version=None):
-    """Splits the data from a raw data file into a single file for each day.
-
-    Parameters
-    ----------
-    fileobject : object, supporting tell, readline, seek, and iteration.
-        The raw data to be split, for instance, a file object open in read mode.
-
-    target : str
-        The directory into which the files will be written.  This directory must
-        already exist.
-
-    kind : str
-        The kind of data being extracted, either 'audio' or 'proximity'.
-
-    log_version : str
-        The log version, in case no metadata is present.
-    """
-    # The days fileobjects
     
-    # It's a mapping from iso dates (e.g. '2017-07-29') to fileobjects
-    days = {}
-    
-    # Extract log version from metadata, if present
-    log_version = extract_log_version(fileobject) or log_version
-
-    if log_version not in ('1.0', '2.0'):
-        raise Exception('file log version was not set and cannot be identified')
-
-    if log_version in ('1.0'):
-        raise Exception('file version '+str(log_version)+'is no longer supported')
-
-    # Read each line
-    for line in fileobject:
-        data = json.loads(line)
-
-        # Keep only relevant data
-        if not data['type'] == kind + ' received':
-            continue
-
-        # Extract the day from the timestamp
-        day = datetime.date.fromtimestamp(data['data']['timestamp']).isoformat()
-
-        # If no fileobject exists for that day, create one
-        if day not in days:
-            days[day] = open(os.path.join(target, day), 'a')
-
-        # Write the data to the corresponding day file
-        json.dump(data, days[day])
-        days[day].write('\n')
-    
-    # Free the memory
-    for f in days.values():
-        f.close()

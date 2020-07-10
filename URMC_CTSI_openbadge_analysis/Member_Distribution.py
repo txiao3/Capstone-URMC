@@ -1,10 +1,15 @@
-import os
+import os, sys
+import logging
+import gzip
 
 import pandas as pd
+import numpy as np
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import networkx as nx
 import Preprocessing
-import heatmap_functions
-
-#Import the data analysis tools
+from collections import Counter
+# Import the data analysis tools
 #import openbadge_analysis as ob
 #import openbadge_analysis.preprocessing
 #import openbadge_analysis.core
@@ -125,6 +130,7 @@ tmp_m2ms = tmp_m2ms.drop(drop_index)
 tmp_m2ms = tmp_m2ms.set_index(['datetime'])
 
 
+import heatmap_functions
 
 time_slice = slice('2019-06-01 10:00', '2019-06-01 10:00')
 breakout1 = slice('2019-06-01 09:50', '2019-06-01 10:39')
@@ -134,8 +140,10 @@ breakout4 = slice('2019-06-01 14:00', '2019-06-01 14:50')
 lunch = slice('2019-06-01 11:40','2019-06-01 13:00')
 whole_session = slice('2019-06-01 9:05','2019-06-01 14:50')
 time_period = whole_session
-background,background_affiliation = heatmap_functions.background_dataframe(attendees_metadata,members_metadata)
-all_name,hm = heatmap_functions.big_heatmap(tmp_m2ms,background_affiliation,time_period)
-hm_copy,hm,name_major,drop_col = heatmap_functions.groupby_same_major_aff(background_affiliation,all_name,hm)
-hm_copy_2 = heatmap_functions.groupby_diff_major_aff(hm_copy,hm,name_major,drop_col)
-heatmap_functions.p_values(background_affiliation,all_name,hm,hm_copy_2)
+
+import member_to_member_function
+
+member_to_member_function.run_all(attendees_metadata,members_metadata,tmp_m2ms,time_period)
+
+
+
