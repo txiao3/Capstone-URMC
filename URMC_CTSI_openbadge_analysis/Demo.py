@@ -10,18 +10,18 @@ Heatmap_functions and Member_Distribution functions to be added
 '''
 
 def main():
-    dynamic.NetworkGraphBasicExample('2019-06-01 10:00','2019-06-01 11:20')
+    #dynamic.NetworkGraphBasicExample('2019-06-01 10:00','2019-06-01 11:20')
     '''
     This function is the code given in the Open Badge Analysis Library 
     '''
     
-    dynamic.LunchTimeAnalysis()
+    #dynamic.LunchTimeAnalysis()
     '''
     Find interactive groups during lunch time
     All the parameters in this function are preset 
     '''
     
-    dynamic.BreakoutSessionAnalysis()
+    #dynamic.BreakoutSessionAnalysis()
     '''
     Find interactive groups during breakout session
     All the parameters in this function are preset 
