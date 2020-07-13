@@ -12,9 +12,9 @@ import networkx as nx
 import Preprocessing as pp
 import Data_Cleaning as dc
 
-def DataCleaning(SELECTED_BEACON,time_zone, attendees_metadata_filename,
-                 log_version, time_bins_size, members_metadata_filename,
-                 beacons_metadata_filename,data_dir):
+def DataCleaning(SELECTED_BEACON,time_zone,log_version,time_bins_size,
+                 members_metadata_filename, beacons_metadata_filename,
+                 attendees_metadata_filename,data_dir):
     #set global variables 
 
     SELECTED_BEACON = 12

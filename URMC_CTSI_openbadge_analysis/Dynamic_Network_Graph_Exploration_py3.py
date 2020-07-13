@@ -16,8 +16,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import networkx as nx
-import Preprocessing as pp
-import Data_Cleaning as dc
+
 
 SELECTED_BEACON = 12,
 time_zone = 'US/Eastern'
@@ -27,15 +26,6 @@ members_metadata_filename = "Member-2019-05-28.csv"
 beacons_metadata_filename = "location table.xlsx"
 attendees_metadata_filename = "Badge assignments_Attendees_2019.xlsx"
 data_dir = "../proximity_2019-06-01/"
-
-tmp_m2ms,tmp_m2bs,attendees_metadata,members_metadata= dc.DataCleaning(SELECTED_BEACON = 12,
-                                    time_zone = 'US/Eastern',
-                                    log_version = '2.0',
-                                    time_bins_size = '1min',
-                                    members_metadata_filename = "Member-2019-05-28.csv",
-                                    beacons_metadata_filename = "location table.xlsx",
-                                    attendees_metadata_filename = "Badge assignments_Attendees_2019.xlsx",
-                                    data_dir = "../proximity_2019-06-01/")   
 
     
 #Network Graph Preparation
@@ -109,8 +99,7 @@ def generate_time_points(start_h, start_m, end_h, end_m, interval=2):
         
     return time_points
 
-#data prep
-tmp_m2ms_sorted = tmp_m2ms.sort_index(0,0)  
+
     
     
 #Define draw_graph style method 
@@ -148,7 +137,10 @@ def draw_graph(G, graph_layout='shell',
 '''
 This trunk is only for demonstration, not for analysis.
 '''    
-def NetworkGraphBasicExample(timestart,timeend):
+def NetworkGraphBasicExample(timestart,timeend,tmp_m2ms):
+    #data prep
+    tmp_m2ms_sorted = tmp_m2ms.sort_index(0,0)      
+    
     # Filter data from specific time period
     
     time_slice = slice(timestart,timeend)
@@ -179,7 +171,9 @@ def NetworkGraphBasicExample(timestart,timeend):
 '''
 Use data from lunch time to find the definition of close interaction This part will create a html interactive interface to identify the interactions threshold
 '''
-def LunchTimeAnalysis():
+def LunchTimeAnalysis(tmp_m2ms):
+    #data prep
+    tmp_m2ms_sorted = tmp_m2ms.sort_index(0,0)   
     # try time slice iteratively
     # Filter data from specific time period
     time_slices=[slice('2019-06-01 11:30', '2019-06-01 11:35'),slice('2019-06-01 11:35', '2019-06-01 11:40'),
@@ -215,13 +209,14 @@ plt.show()
 '''
 Use data from lunch time to find the definition of close interaction
 '''
-def BreakoutSessionAnalysis():
+def BreakoutSessionAnalysis(tmp_m2ms):
     #try time slice iteratively
     # Filter data from specific time period
     time_slices=generate_time_slices(9,50,11,20,interval=2)
     
     # time slice creation
-    
+    #data prep
+    tmp_m2ms_sorted = tmp_m2ms.sort_index(0,0)   
     
     for i in range(1,46):
         time_slice = time_slices[i-1]
@@ -260,8 +255,11 @@ of the peak -2. -2 for leave some room for fluctuation.
     
 def InteractionNetworkGraph(time_interval_start_h, time_interval_start_m,
                             time_interval_end_h, time_interval_end_m,
-                            interval,t_count_threshold):
+                            interval,t_count_threshold,tmp_m2ms):
     #Data&variable preparation 
+    
+    #data prep
+    tmp_m2ms_sorted = tmp_m2ms.sort_index(0,0)   
    
     #create a historgram that is used to find the threhold of signal strength 
     bo1 = generate_time_points(time_interval_start_h, time_interval_start_m, 
